@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Page setup & visual identity
@@ -26,13 +27,22 @@ h1, h2, h3 {{ font-family: 'Space Grotesk', 'Inter', sans-serif !important; lett
 .stApp {{ background-color: {PAPER}; }}
 section[data-testid="stSidebar"] {{ background-color: {NAVY}; }}
 section[data-testid="stSidebar"] * {{ color: #E7F1F2 !important; }}
-/* The rule above also lightened text INSIDE the input boxes below, which
-   still have a white background (unlike the dark sidebar around them) --
+/* The rule above also lightened text INSIDE the input/dropdown boxes below,
+   which sit on a white background (unlike the dark sidebar around them) --
    that made the selected date/time/model value nearly invisible. Force
-   those specific value areas back to dark text since they sit on white. */
-section[data-testid="stSidebar"] div[data-testid="stDateInput"] input,
-section[data-testid="stSidebar"] div[data-testid="stTimeInput"] input,
-section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[data-baseweb="select"] * {{ color: {INK} !important; }}
+   every element inside these three widgets back to dark text (covers
+   whatever internal DOM structure each widget actually uses)... */
+section[data-testid="stSidebar"] div[data-testid="stDateInput"] *,
+section[data-testid="stSidebar"] div[data-testid="stTimeInput"] *,
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] * {{ color: {INK} !important; }}
+/* ...except the label itself (e.g. "TIME"), which sits on the dark sidebar
+   background and needs to stay light, not dark-on-dark. */
+section[data-testid="stSidebar"] div[data-testid="stDateInput"] label,
+section[data-testid="stSidebar"] div[data-testid="stDateInput"] label *,
+section[data-testid="stSidebar"] div[data-testid="stTimeInput"] label,
+section[data-testid="stSidebar"] div[data-testid="stTimeInput"] label *,
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label,
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label * {{ color: #E7F1F2 !important; }}
 section[data-testid="stSidebar"] .stSelectbox label, section[data-testid="stSidebar"] .stDateInput label, section[data-testid="stSidebar"] .stTimeInput label {{ font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85; }}
 section[data-testid="stSidebar"] hr {{ border-color: rgba(231,241,242,0.15); }}
 .sidebar-title {{ font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: white !important; margin-bottom: 0.1rem; }}
@@ -52,7 +62,8 @@ hr {{ border-color: {BORDER}; }}
 # ---------------------------------------------------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("app_predictions.csv")
+    csv_path = Path(__file__).resolve().parent / "app_predictions.csv"
+    df = pd.read_csv(csv_path)
     df["Timestamp"] = pd.to_datetime(df["Timestamp"])
     return df
 
